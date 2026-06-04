@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jxhnny Refactor Patterns"
+  short_description: "Refactor frontend code to jxhnny patterns"
+  default_prompt: "Use $jxhnny-refactor-patterns to refactor this frontend code to match my preferred patterns."
