@@ -1,96 +1,106 @@
 # jxhnny-refactor-patterns
 
-Codex skill for frontend refactors that preserve behavior, follow local
-patterns first, and split large files by responsibility instead of rewriting
-them wholesale.
+A frontend refactoring skill for coding agents. Preserve behavior, follow local
+patterns, and split large files by responsibility. The complete instructions
+live in `skills/jxhnny-refactor-patterns/`.
 
-## Install For Codex
+## Install With Skills CLI
 
-Recommended one-line install:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/NatpacanSri/jxhnny-refactor-patterns/main/scripts/install-codex.sh | bash
-```
-
-Replace an existing install:
+Requires Node.js and npm. Run this inside the project where you want the skill:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NatpacanSri/jxhnny-refactor-patterns/main/scripts/install-codex.sh | bash -s -- --force
+npx skills add NatpacanSri/jxhnny-refactor-patterns --skill jxhnny-refactor-patterns
 ```
 
-Or install with the Codex skill installer from this repository path:
+Choose your agents interactively, or specify them:
 
 ```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo NatpacanSri/jxhnny-refactor-patterns \
-  --path skills/jxhnny-refactor-patterns
+npx skills add NatpacanSri/jxhnny-refactor-patterns --skill jxhnny-refactor-patterns --agent codex claude-code cursor opencode
 ```
 
-Restart Codex after installing the skill.
+Add `--global` to install for your user across projects. Prefer project scope
+when sharing the skill with a team.
 
-## Use With Other CLI Agents
+The [Skills CLI](https://github.com/vercel-labs/skills) manages agent installation
+locations and supports symlink or copy installs. Its current documentation lists
+the supported agents and options. Installation compatibility does not guarantee
+identical refactor results across models.
 
-Other coding agents may not understand Codex `SKILL.md` folders directly. Use
-the agent-agnostic instructions instead:
+Check and update Skills CLI-managed installations:
+
+```bash
+npx skills check
+npx skills update
+```
+
+## Install For Codex Without Node.js
+
+The shell installer remains available. Download and inspect it, then run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/NatpacanSri/jxhnny-refactor-patterns/main/scripts/install-codex.sh -o install-codex.sh
+bash install-codex.sh
+```
+
+Use `bash install-codex.sh --force` to update a shell-managed installation.
+It keeps a backup of the previous install. The script respects `CODEX_HOME`
+and refuses to replace symlinks managed by another installer.
+
+Start a new agent session after installing to pick up the skill.
+
+## Agents With Project Instruction Files
+
+For agents without native skill discovery, install the complete skill and a
+pointer in the project's instruction file:
 
 ```bash
 git clone https://github.com/NatpacanSri/jxhnny-refactor-patterns.git
 cd jxhnny-refactor-patterns
-./scripts/install-agent-instructions.sh /path/to/your/project
+./scripts/install-agent-instructions.sh /path/to/project
 ```
 
-That copies:
+The default instruction file is `AGENTS.md`. Select another filename with:
 
-```text
-/path/to/your/project/.agent-instructions/jxhnny-refactor-patterns.md
+```bash
+./scripts/install-agent-instructions.sh /path/to/project --file CLAUDE.md
+./scripts/install-agent-instructions.sh /path/to/project --file GEMINI.md
 ```
 
-and creates or appends:
+The installer copies the canonical skill and all its references into
+`.agent-instructions/jxhnny-refactor-patterns/`. It preserves existing project
+instructions and adds the pointer once. Re-running updates the skill files.
+Use a filename that your agent actually reads.
 
-```text
-/path/to/your/project/AGENTS.md
-```
-
-For tools that use a different project instruction filename, copy or reference
-`agent-instructions/jxhnny-refactor-patterns.md` from that tool's native
-instruction file.
+If you used the older installer, the old instruction may refer to
+`.agent-instructions/jxhnny-refactor-patterns.md`. After reinstalling, use the
+new directory's `SKILL.md` pointer; the old copied guide is no longer maintained.
 
 ## Use
 
-Invoke the skill explicitly:
+For Codex, invoke `$jxhnny-refactor-patterns`. For other agents, use their
+native skill invocation or ask:
 
 ```text
-Use $jxhnny-refactor-patterns to refactor this frontend component.
+Use jxhnny-refactor-patterns to refactor this frontend component.
 ```
 
-The skill also triggers naturally for requests like:
+Examples:
 
 - `refactor-pattern`
 - `refactor this to match the existing frontend pattern`
 - `split this large file by responsibility`
 - `adapt this implementation to the system practice`
 
-## Layout
+## Maintain
 
-```text
-skills/
-└── jxhnny-refactor-patterns/
-    ├── SKILL.md
-    ├── agents/
-    │   └── openai.yaml
-    └── references/
-        ├── frontend-patterns.md
-        └── target-repo-adaptation.md
-agent-instructions/
-├── AGENTS.md
-└── jxhnny-refactor-patterns.md
-scripts/
-├── install-agent-instructions.sh
-└── install-codex.sh
+Edit the canonical skill and its references. The generic agent guide links to
+that source instead of duplicating the refactor rules.
+
+Run the installer smoke checks:
+
+```bash
+bash scripts/test-installers.sh
 ```
 
-## Notes
-
-This public version avoids machine-specific paths and private project names.
-For team use, keep private repo-specific references in a private fork or add a
-separate private reference file.
+The public version contains no machine-specific paths or private project names.
+Keep private project references in a private fork.

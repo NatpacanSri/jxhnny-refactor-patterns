@@ -50,6 +50,10 @@ description: Refactor frontend code to match jxhnny's preferred patterns and pra
 
 ## Refactor Heuristics
 
+- Prefer arrow-function assignments for app-authored components, hooks,
+  utilities, and callbacks. Use declarations when hoisting, overloads, or a
+  framework API requires them. For function components, prefer a local
+  `type Props` above a named arrow export with destructured props.
 - Prefer page-owned orchestration and leaf components that receive explicit
   props. Keep selection, modal, pagination, sort, and applied filter state at
   the level where sibling components need to coordinate.

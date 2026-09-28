@@ -22,7 +22,7 @@ Environment:
   CODEX_HOME  Codex home directory. Default: ~/.codex
 
 Options:
-  --force     Replace an existing installed skill.
+  --force     Replace an existing installed skill and keep a backup.
 USAGE
 }
 
@@ -43,6 +43,11 @@ while [ "$#" -gt 0 ]; do
       ;;
   esac
 done
+
+if [ -L "$DEST" ]; then
+  echo "Skill is a symlink: $DEST. Update it with its original installer." >&2
+  exit 1
+fi
 
 if [ -e "$DEST" ] && [ "$FORCE" -ne 1 ]; then
   echo "Skill already exists: $DEST" >&2
@@ -72,11 +77,17 @@ fi
 
 SOURCE_DIR="$(dirname "$SOURCE")"
 
+# Finish copying before moving the existing installation out of the way.
+STAGED_DIR="$(mktemp -d "$DEST_PARENT/.${SKILL_NAME}.XXXXXX")"
+cp -R "$SOURCE_DIR/." "$STAGED_DIR/"
+
 if [ -e "$DEST" ]; then
-  rm -rf "$DEST"
+  BACKUP_DIR="$(mktemp -d "$DEST_PARENT/.${SKILL_NAME}.backup.XXXXXX")"
+  mv "$DEST" "$BACKUP_DIR/$SKILL_NAME"
+  echo "Previous install saved to $BACKUP_DIR/$SKILL_NAME"
 fi
 
-cp -R "$SOURCE_DIR" "$DEST"
+mv "$STAGED_DIR" "$DEST"
 
 echo "Installed $SKILL_NAME to $DEST"
 echo "Restart Codex to pick up the skill."

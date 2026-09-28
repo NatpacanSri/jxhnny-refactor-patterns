@@ -1,27 +1,64 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TARGET_DIR="${1:-.}"
+TARGET_DIR="."
+INSTRUCTION_FILE="AGENTS.md"
+TARGET_SET=0
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --file)
+      if [ "$#" -lt 2 ]; then
+        echo "--file requires AGENTS.md, CLAUDE.md, or GEMINI.md" >&2
+        exit 2
+      fi
+      INSTRUCTION_FILE="$2"
+      shift 2
+      ;;
+    -h|--help)
+      echo "Usage: $0 [project-directory] [--file AGENTS.md|CLAUDE.md|GEMINI.md]"
+      exit 0
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      exit 2
+      ;;
+    *)
+      if [ "$TARGET_SET" -eq 1 ]; then
+        echo "Only one project directory is accepted" >&2
+        exit 2
+      fi
+      TARGET_DIR="$1"
+      TARGET_SET=1
+      shift
+      ;;
+  esac
+done
+
+case "$INSTRUCTION_FILE" in
+  AGENTS.md|CLAUDE.md|GEMINI.md) ;;
+  *) echo "Unsupported instruction filename: $INSTRUCTION_FILE" >&2; exit 2 ;;
+esac
+
 SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-INSTRUCTION_SOURCE="$SOURCE_DIR/agent-instructions/jxhnny-refactor-patterns.md"
-AGENTS_SOURCE="$SOURCE_DIR/agent-instructions/AGENTS.md"
+SKILL_NAME="jxhnny-refactor-patterns"
+SKILL_SOURCE="$SOURCE_DIR/skills/$SKILL_NAME"
+DEST="$TARGET_DIR/.agent-instructions/$SKILL_NAME"
+POINTER=".agent-instructions/$SKILL_NAME/SKILL.md"
 
-mkdir -p "$TARGET_DIR/.agent-instructions"
-cp "$INSTRUCTION_SOURCE" "$TARGET_DIR/.agent-instructions/jxhnny-refactor-patterns.md"
-
-if [ ! -e "$TARGET_DIR/AGENTS.md" ]; then
-  cp "$AGENTS_SOURCE" "$TARGET_DIR/AGENTS.md"
-  echo "Created $TARGET_DIR/AGENTS.md"
-else
-  cat >> "$TARGET_DIR/AGENTS.md" <<'EOF'
-
-## Jxhnny Refactor Patterns
-
-For frontend refactors, read `.agent-instructions/jxhnny-refactor-patterns.md`.
-Follow target-repo conventions first, preserve behavior, and split large files
-by one responsibility at a time.
-EOF
-  echo "Appended Jxhnny Refactor Patterns note to $TARGET_DIR/AGENTS.md"
+if [ -L "$DEST" ] || [ -L "$TARGET_DIR/$INSTRUCTION_FILE" ]; then
+  echo "Refusing to modify a symlinked install or instruction file" >&2
+  exit 1
 fi
 
-echo "Installed generic agent instructions into $TARGET_DIR"
+mkdir -p "$DEST"
+cp -R "$SKILL_SOURCE/." "$DEST/"
+
+if ! [ -f "$TARGET_DIR/$INSTRUCTION_FILE" ] ||
+  ! grep -Fq "$POINTER" "$TARGET_DIR/$INSTRUCTION_FILE"; then
+  printf '\n## Jxhnny Refactor Patterns\n\nFor frontend refactors, read `%s` and its reference links.\n' \
+    "$POINTER" >> "$TARGET_DIR/$INSTRUCTION_FILE"
+fi
+
+echo "Installed $SKILL_NAME to $DEST"
+echo "Project instructions: $TARGET_DIR/$INSTRUCTION_FILE"
